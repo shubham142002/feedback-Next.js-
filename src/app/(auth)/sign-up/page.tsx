@@ -1,11 +1,13 @@
 'use client';
 
+import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {useDebounceCallback} from "usehooks-ts"
+import { useDebounce } from 'usehooks-ts';
 import * as z from 'zod';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -15,19 +17,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import axios, { AxiosError } from 'axios';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signUpSchema } from '@/schemas/signUpSchema';
-import { ApiResponse } from '@/types/ApiRespose';
 
 export default function SignUpForm() {
   const [username, setUsername] = useState('');
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const debounced = useDebounceCallback(setUsername, 300);
+  const debouncedUsername = useDebounce(username, 300);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -43,12 +44,12 @@ export default function SignUpForm() {
 
   useEffect(() => {
     const checkUsernameUnique = async () => {
-      if (username) {
+      if (debouncedUsername) {
         setIsCheckingUsername(true);
         setUsernameMessage(''); // Reset message
         try {
           const response = await axios.get<ApiResponse>(
-            `/api/check-username-unique?username=${username}`
+            `/api/check-username-unique?username=${debouncedUsername}`
           );
           setUsernameMessage(response.data.message);
         } catch (error) {
@@ -62,7 +63,7 @@ export default function SignUpForm() {
       }
     };
     checkUsernameUnique();
-  }, [username]);
+  }, [debouncedUsername]);
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
@@ -184,3 +185,4 @@ export default function SignUpForm() {
     </div>
   );
 }
+

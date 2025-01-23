@@ -1,5 +1,5 @@
 import dbConnect from '@/lib/dbConnect';
-import UserModel from '@/models/User';
+import UserModel from '@/model/User';
 import bcrypt from 'bcryptjs';
 import { sendVerificationEmail } from '@/helpers/sendVerificationEmail';
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
-        existingUserByEmail.verifyCodeExpire = new Date(Date.now() + 3600000);
+        existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
         await existingUserByEmail.save();
       }
     } else {
