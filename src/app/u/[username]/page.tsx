@@ -1,84 +1,71 @@
 'use client';
 
-import React, { useState } from 'react';
-import axios, { AxiosError } from 'axios';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios, { AxiosError } from 'axios';
+import { MessageSquare, Send, Loader2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { CardHeader, CardContent, Card } from '@/components/ui/card';
-import { useCompletion } from 'ai/react';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/components/ui/use-toast';
-import * as z from 'zod';
-import { ApiResponse } from '@/types/ApiResponse';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { messageSchema } from '@/schemas/messageSchema';
+import { z } from 'zod';
 
-const specialChar = '||';
+const feedbackSchema = z.object({
+  content: z.string().min(1, 'Message is required').max(500),
+});
 
-const parseStringMessages = (messageString: string): string[] => {
-  return messageString.split(specialChar);
-};
+type FormData = z.infer<typeof feedbackSchema>;
 
-const initialMessageString =
-  "What's your favorite movie?||Do you have any pets?||What's your dream job?";
-
-export default function SendMessage() {
-  const params = useParams<{ username: string }>();
-  const username = params.username;
-
-  const {
-    complete,
-    completion,
-    isLoading: isSuggestLoading,
-    error,
-  } = useCompletion({
-    api: '/api/suggest-messages',
-    initialCompletion: initialMessageString,
-  });
-
-  const form = useForm<z.infer<typeof messageSchema>>({
-    resolver: zodResolver(messageSchema),
-  });
-
-  const messageContent = form.watch('content');
-
-  const handleMessageClick = (message: string) => {
-    form.setValue('content', message);
-  };
-
+export default function PublicProfile() {
+  const params = useParams();
+  const username = params?.username?.toString();
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [characterCount, setCharacterCount] = useState(0);
+  const maxCharacters = 500;
 
-  const onSubmit = async (data: z.infer<typeof messageSchema>) => {
+  const form = useForm<FormData>({
+    resolver: zodResolver(feedbackSchema),
+    defaultValues: {
+      content: '',
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    if (!username) return;
     setIsLoading(true);
     try {
-      const response = await axios.post<ApiResponse>('/api/send-message', {
-        ...data,
-        username,
+      const response = await axios.post(`/api/messages/${username}`, {
+        content: data.content,
       });
-
+      
       toast({
-        title: response.data.message,
-        variant: 'default',
+        title: 'Success!',
+        description: 'Your feedback has been sent successfully.',
       });
-      form.reset({ ...form.getValues(), content: '' });
+      form.reset();
+      setCharacterCount(0);
     } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>;
+      const axiosError = error as AxiosError<any>;
       toast({
         title: 'Error',
-        description:
-          axiosError.response?.data.message ?? 'Failed to sent message',
+        description: axiosError.response?.data?.message || 'Failed to send feedback',
         variant: 'destructive',
       });
     } finally {
@@ -86,93 +73,95 @@ export default function SendMessage() {
     }
   };
 
-  const fetchSuggestedMessages = async () => {
-    try {
-      complete('');
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      // Handle error appropriately
-    }
-  };
-
   return (
-    <div className="container mx-auto my-8 p-6 bg-white rounded max-w-4xl">
-      <h1 className="text-4xl font-bold mb-6 text-center">
-        Public Profile Link
-      </h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Send Anonymous Message to @{username}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Write your anonymous message here"
-                    className="resize-none"
-                    {...field}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-6">
+      <div className="max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary via-secondary to-accent blur-md opacity-75" />
+                  <div className="relative bg-background rounded-full p-3">
+                    <MessageSquare className="w-8 h-8 text-primary" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <CardTitle className="text-3xl font-bold">
+                  Send a Message to @{username}
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Share your thoughts anonymously. Be kind and constructive!
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="relative">
+                            <Textarea
+                              placeholder="Type your message here..."
+                              className="min-h-[200px] resize-none bg-background/50 border-border/50 focus:border-primary transition-all duration-300"
+                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setCharacterCount(e.target.value.length);
+                              }}
+                              maxLength={maxCharacters}
+                            />
+                            <div className="absolute bottom-3 right-3 text-sm text-muted-foreground">
+                              {characterCount}/{maxCharacters}
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex justify-center">
-            {isLoading ? (
-              <Button disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isLoading || !messageContent}>
-                Send It
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
 
-      <div className="space-y-4 my-8">
-        <div className="space-y-2">
-          <Button
-            onClick={fetchSuggestedMessages}
-            className="my-4"
-            disabled={isSuggestLoading}
-          >
-            Suggest Messages
-          </Button>
-          <p>Click on any message below to select it.</p>
-        </div>
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Messages</h3>
-          </CardHeader>
-          <CardContent className="flex flex-col space-y-4">
-            {error ? (
-              <p className="text-red-500">{error.message}</p>
-            ) : (
-              parseStringMessages(completion).map((message, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="mb-2"
-                  onClick={() => handleMessageClick(message)}
-                >
-                  {message}
-                </Button>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Separator className="my-6" />
-      <div className="text-center">
-        <div className="mb-4">Get Your Message Board</div>
-        <Link href={'/sign-up'}>
-          <Button>Create Your Account</Button>
-        </Link>
+                  <div className="flex justify-end space-x-4">
+                    <Button
+                      type="submit"
+                      disabled={isLoading || characterCount === 0}
+                      className="relative group overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4" />
+                            Send Feedback
+                          </>
+                        )}
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+
+              <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
+                <Sparkles className="h-4 w-4" />
+                <p>Your message will be sent anonymously</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
