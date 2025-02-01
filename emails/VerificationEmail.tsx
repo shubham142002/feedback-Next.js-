@@ -50,15 +50,51 @@ export default function VerificationEmail({ username, otp }: VerificationEmailPr
             If you did not request this code, please ignore this email.
           </Text>
         </Row>
-        {/* <Row>
+        <Row>
           <Button
             href={`http://localhost:3000/verify/${username}`}
             style={{ color: '#61dafb' }}
           >
             Verify here
           </Button>
-        </Row> */}
+        </Row>
       </Section>
     </Html>
   );
 }
+
+// Styles
+const main = {
+  backgroundColor: '#ffffff',
+  padding: '40px 0',
+};
+
+const heading = {
+  fontSize: '24px',
+  lineHeight: '1.3',
+  fontWeight: '700',
+  color: '#484848',
+  textAlign: 'center' as const,
+};
+
+const text = {
+  fontSize: '16px',
+  lineHeight: '1.4',
+  color: '#484848',
+  marginBottom: '24px',
+};
+
+const codeContainer = {
+  backgroundColor: '#f4f4f4',
+  borderRadius: '5px',
+  padding: '24px',
+  margin: '24px 0',
+};
+
+const code = {
+  fontSize: '32px',
+  fontWeight: '700',
+  color: '#484848',
+  letterSpacing: '6px',
+  textAlign: 'center' as const,
+};

@@ -59,23 +59,28 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
-            Welcome Back to True Feedback
+    <div className="min-h-screen flex items-center justify-center bg-[url('/auth-bg.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0A2647]/80 via-[#2C786C]/80 to-[#FFD700]/80 backdrop-blur-sm"></div>
+      <div className="relative w-full max-w-md space-y-8 bg-background/95 p-8 rounded-2xl shadow-xl border border-border/50 animate-float m-4">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-[#0A2647] via-[#2C786C] to-[#FFD700] bg-clip-text text-transparent animate-gradient">
+            Welcome Back
           </h1>
-          <p className="mb-4">Sign in to continue your secret conversations</p>
+          <p className="text-muted-foreground">Continue your journey with True Feedback</p>
         </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
             <FormField
               name="identifier"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email/Username</FormLabel>
-                  <Input {...field} />
+                  <FormLabel className="text-foreground">Email/Username</FormLabel>
+                  <Input 
+                    {...field} 
+                    className="bg-background/50 border-border/50 focus:border-[#2C786C] transition-all duration-300"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -85,20 +90,33 @@ export default function SignInForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <Input type="password" {...field} />
+                  <FormLabel className="text-foreground">Password</FormLabel>
+                  <Input 
+                    type="password" 
+                    {...field}
+                    className="bg-background/50 border-border/50 focus:border-[#2C786C] transition-all duration-300"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className='w-full' type="submit">Sign In</Button>
+            <Button 
+              className="w-full relative bg-gradient-to-r from-[#0A2647] via-[#2C786C] to-[#FFD700] hover:opacity-90 text-white hover:text-white py-2 rounded-lg transition-all duration-300 hover:scale-[1.02] animate-gradient [&>span]:relative [&>span]:z-10 before:absolute before:inset-0 before:bg-black/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity" 
+              type="submit"
+            >
+              <span>Sign In</span>
+            </Button>
           </form>
         </Form>
-        <div className="text-center mt-4">
-          <p>
+
+        <div className="text-center mt-6">
+          <p className="text-muted-foreground">
             Not a member yet?{' '}
-            <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
-              Sign up
+            <Link 
+              href="/sign-up" 
+              className="text-[#2C786C] hover:text-[#0A2647] font-medium transition-colors duration-300"
+            >
+              Sign up now
             </Link>
           </p>
         </div>
