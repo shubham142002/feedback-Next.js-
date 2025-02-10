@@ -1,18 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface Message extends Document {
+export interface Message {
+  _id?: string;
   content: string;
   createdAt: Date;
 }
 
-const MessageSchema: Schema<Message> = new mongoose.Schema({
+const MessageSchema = new mongoose.Schema<Message>({
   content: {
     type: String,
-    required: true,
+    required: [true, 'Message content is required'],
+    maxlength: [500, 'Message cannot exceed 500 characters'],
   },
   createdAt: {
     type: Date,
-    required: true,
     default: Date.now,
   },
 });
@@ -21,15 +22,14 @@ export interface User extends Document {
   username: string;
   email: string;
   password: string;
-  verifyCode: string;
-  verifyCodeExpiry: Date; 
+  verifyCode?: string;
+  verifyCodeExpiry?: Date;
   isVerified: boolean;
   isAcceptingMessages: boolean;
   messages: Message[];
 }
 
-// Updated User schema
-const UserSchema: Schema<User> = new mongoose.Schema({
+const UserSchema = new mongoose.Schema<User>({
   username: {
     type: String,
     required: [true, 'Username is required'],
@@ -48,11 +48,17 @@ const UserSchema: Schema<User> = new mongoose.Schema({
   },
   verifyCode: {
     type: String,
-    required: [true, 'Verify Code is required'],
+    required: function(this: User) {
+      return !this.isVerified;
+    },
+    select: false, // Hide by default
   },
   verifyCodeExpiry: {
     type: Date,
-    required: [true, 'Verify Code Expiry is required'],
+    required: function(this: User) {
+      return !this.isVerified;
+    },
+    select: false, // Hide by default
   },
   isVerified: {
     type: Boolean,
@@ -65,8 +71,6 @@ const UserSchema: Schema<User> = new mongoose.Schema({
   messages: [MessageSchema],
 });
 
-const UserModel =
-  (mongoose.models.User as mongoose.Model<User>) ||
-  mongoose.model<User>('User', UserSchema);
+const UserModel = mongoose.models.User || mongoose.model<User>('User', UserSchema);
 
 export default UserModel;

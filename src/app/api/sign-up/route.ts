@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import User from '@/models/User';
+import User from '@/model/User';
 import bcrypt from 'bcryptjs';
 import { Resend } from 'resend';
 import VerificationEmail from '@/emails/VerificationEmail';
@@ -12,69 +12,77 @@ export async function POST(request: Request) {
   try {
     const { username, email, password } = await request.json();
 
-    await connectToDatabase();
-
-    // Check if username already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    if (!username || !email || !password) {
       return NextResponse.json(
-        { message: 'Username already exists' },
+        { message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Check if email already exists
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
+    await connectToDatabase();
+
+    // Check existing user
+    const existingUser = await User.findOne({
+      $or: [{ username }, { email }]
+    });
+
+    if (existingUser) {
+      const field = existingUser.username === username ? 'Username' : 'Email';
       return NextResponse.json(
-        { message: 'Email already exists' },
+        { message: `${field} already exists` },
         { status: 400 }
       );
     }
 
     // Generate verification code
-    const verificationCode = generateOTP();
-    const verificationCodeExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const verifyCode = generateOTP();
+    const verifyCodeExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user with verification code
+    // Send verification email first
+    try {
+      await resend.emails.send({
+        from: 'True Feedback <onboarding@resend.dev>',
+        to: email,
+        subject: 'Verify your True Feedback account',
+        react: VerificationEmail({
+          username,
+          otp: verifyCode,
+        }),
+      });
+    } catch (emailError) {
+      console.error('Error sending verification email:', emailError);
+      throw new Error('Failed to send verification email');
+    }
+
+    // Create user after email is sent successfully
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
-      verificationCode,
-      verificationCodeExpiry,
+      verifyCode,
+      verifyCodeExpiry,
       isVerified: false,
-    });
-
-    // Send verification email
-    await resend.emails.send({
-      from: 'True Feedback <onboarding@resend.dev>',
-      to: email,
-      subject: 'Verify your True Feedback account',
-      react: VerificationEmail({
-        username,
-        otp: verificationCode,
-      }),
-    });
-
-    console.log('User created with verification code:', {
-      username,
-      verificationCode,
-      verificationCodeExpiry
+      isAcceptingMessages: true
     });
 
     return NextResponse.json(
-      { message: 'Account created successfully. Please check your email for verification.' },
+      { 
+        success: true,
+        message: 'Account created successfully. Please check your email for verification.' 
+      },
       { status: 201 }
     );
 
   } catch (error) {
     console.error('Error in sign-up:', error);
     return NextResponse.json(
-      { message: 'Failed to create account' },
+      { 
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to create account'
+      },
       { status: 500 }
     );
   }

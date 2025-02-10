@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import dayjs from 'dayjs';
 import { X } from 'lucide-react';
 import { Message } from '@/model/User';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,10 +19,12 @@ import {
 import { Button } from './ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { ApiResponse } from '@/types/ApiResponse';
+import { formatDistanceToNow } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 type MessageCardProps = {
   message: Message;
-  onMessageDelete: (messageId: string) => void;
+  onMessageDelete: (id: string) => void;
 };
 
 export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
@@ -37,7 +38,6 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
       toast({
         title: response.data.message,
       });
-      onMessageDelete(message._id as string);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
@@ -49,14 +49,18 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
     }
   };
 
+  const formattedDate = formatDistanceToNow(new Date(message.createdAt), {
+    addSuffix: true,
+  });
+
   return (
     <Card className="group bg-card/50 backdrop-blur-sm border-border/50 transition-all duration-200 hover:shadow-lg hover:border-primary/20">
       <CardHeader className="space-y-3">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <CardTitle className="text-lg line-clamp-2">{message.content}</CardTitle>
+            <CardTitle className="text-lg line-clamp-2">{formattedDate}</CardTitle>
             <CardDescription>
-              {dayjs(message.createdAt).format('MMM D, YYYY h:mm A')}
+              {message.content}
             </CardDescription>
           </div>
           <AlertDialog>

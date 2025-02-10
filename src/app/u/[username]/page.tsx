@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
+import { ApiResponse } from '@/types/ApiResponse';
 import { MessageSquare, Send, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -51,21 +52,22 @@ export default function PublicProfile() {
     if (!username) return;
     setIsLoading(true);
     try {
-      const response = await axios.post(`/api/messages/${username}`, {
-        content: data.content,
-      });
+      const response = await axios.post<ApiResponse>(
+        `/api/messages/${username}`,
+        { content: data.content }
+      );
       
       toast({
-        title: 'Success!',
-        description: 'Your feedback has been sent successfully.',
+        title: 'Success',
+        description: response.data.message,
       });
       form.reset();
       setCharacterCount(0);
     } catch (error) {
-      const axiosError = error as AxiosError<any>;
+      const axiosError = error as AxiosError<ApiResponse>;
       toast({
         title: 'Error',
-        description: axiosError.response?.data?.message || 'Failed to send feedback',
+        description: axiosError.response?.data.message || 'Failed to send message',
         variant: 'destructive',
       });
     } finally {

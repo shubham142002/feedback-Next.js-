@@ -18,45 +18,19 @@ interface VerifyPageProps {
 export default function VerifyPage({ params }: VerifyPageProps) {
   const [verificationCode, setVerificationCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const username = params.username;
-
-  // Handle hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+  const username = decodeURIComponent(params.username);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const trimmedCode = verificationCode.trim();
-    
-    if (!trimmedCode) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a verification code',
-        variant: 'destructive',
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      console.log('Submitting verification:', { username, code: trimmedCode });
-      
       const response = await axios.post<ApiResponse>('/api/verify', {
         username,
-        verificationCode: trimmedCode,
+        verificationCode: verificationCode.trim(),
       });
-
-      console.log('Verification response:', response.data);
 
       toast({
         title: 'Success',
@@ -68,22 +42,10 @@ export default function VerifyPage({ params }: VerifyPageProps) {
       }, 1500);
 
     } catch (error) {
-      console.error('Error during verification:', error);
       const axiosError = error as AxiosError<ApiResponse>;
-      
-      const errorMessage = axiosError.response?.data.message || 
-        axiosError.message || 
-        'Something went wrong';
-
-      console.log('Error details:', {
-        status: axiosError.response?.status,
-        message: errorMessage,
-        data: axiosError.response?.data
-      });
-
       toast({
         title: 'Verification Failed',
-        description: errorMessage,
+        description: axiosError.response?.data.message || 'Failed to verify account',
         variant: 'destructive',
       });
     } finally {
@@ -123,11 +85,9 @@ export default function VerifyPage({ params }: VerifyPageProps) {
           <p className="text-muted-foreground">
             Please enter the verification code sent to your email
           </p>
-          {mounted && (
-            <p className="text-sm font-medium text-foreground">
-              Verifying account: {username}
-            </p>
-          )}
+          <p className="text-sm font-medium text-foreground">
+            Verifying account: {username}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">

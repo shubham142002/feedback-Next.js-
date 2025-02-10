@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import User from '@/models/User';
+import User from '@/model/User';
 import { generateOTP } from '@/lib/utils';
 import { Resend } from 'resend';
 import VerificationEmail from '@/emails/VerificationEmail';
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     const newOTP = generateOTP();
     
     // Update user with new OTP and reset verification status
-    user.verificationCode = newOTP;
-    user.verificationCodeExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    user.verifyCode = newOTP;
+    user.verifyCodeExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
     user.isVerified = false;
     await user.save();
 
