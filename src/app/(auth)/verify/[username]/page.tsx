@@ -28,9 +28,9 @@ export default function VerifyPage({ params }: VerifyPageProps) {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post<ApiResponse>('/api/verify', {
+      const response = await axios.post<ApiResponse>('/api/verify-code', {
         username,
-        verificationCode: verificationCode.trim(),
+        code: verificationCode.trim(),
       });
 
       toast({
