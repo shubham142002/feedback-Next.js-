@@ -22,12 +22,12 @@ export async function POST(request: Request) {
     await connectToDatabase();
 
     // Check existing user
-    const _user = await User.findOne({
+    const existingUser = await User.findOne({
       $or: [{ username }, { email }]
     });
 
-    if (_user) {
-      const field = _user.username === username ? 'Username' : 'Email';
+    if (existingUser) {
+      const field = existingUser.username === username ? 'Username' : 'Email';
       return NextResponse.json(
         { message: `${field} already exists` },
         { status: 400 }

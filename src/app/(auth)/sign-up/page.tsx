@@ -75,23 +75,19 @@ export default function SignUpForm() {
       });
 
       router.replace(`/verify/${username}`);
-
-      setIsSubmitting(false);
     } catch (error) {
       console.error('Error during sign-up:', error);
 
       const axiosError = error as AxiosError<ApiResponse>;
-
-      // Default error message
-      let errorMessage = axiosError.response?.data.message;
-      ('There was a problem with your sign-up. Please try again.');
+      const errorMessage = axiosError.response?.data.message || 
+        'There was a problem with your sign-up. Please try again.';
 
       toast({
         title: 'Sign Up Failed',
         description: errorMessage,
         variant: 'destructive',
       });
-
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -149,7 +145,9 @@ export default function SignUpForm() {
                     {...field} 
                     className="bg-background/50 border-border/50 focus:border-[#2C786C] transition-all duration-300"
                   />
-                  <p className="text-sm text-muted-foreground">We'll send you a verification code</p>
+                  <p className="text-muted-foreground">
+                    We&apos;ll send you a verification code
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

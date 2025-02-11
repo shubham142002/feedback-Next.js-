@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,8 +134,8 @@ export default function VerifyPage({ params }: VerifyPageProps) {
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            The verification code will expire in 1 hour. If you haven't received the code,
-            check your spam folder or click "Resend Code".
+            The verification code will expire in 1 hour. If you haven&apos;t received the code,
+            check your spam folder or click &quot;Resend Code&quot;.
           </p>
         </div>
       </div>
