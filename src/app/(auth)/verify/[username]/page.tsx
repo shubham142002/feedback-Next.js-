@@ -9,12 +9,12 @@ import axios, { AxiosError } from 'axios';
 import { ApiResponse } from '@/types/ApiResponse';
 import { Loader2 } from 'lucide-react';
 
-interface VerifyPageProps {
+type VerifyPageProps = {
   params: {
     username: string;
   };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+  searchParams: Record<string, string | string[] | undefined>;
+};
 
 export default function VerifyPage({ params }: VerifyPageProps) {
   const [verificationCode, setVerificationCode] = useState('');
