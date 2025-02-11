@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     // Create user after email is sent successfully
-    const user = await User.create({
+    await User.create({
       username,
       email,
       password: hashedPassword,

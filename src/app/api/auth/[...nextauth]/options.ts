@@ -1,8 +1,18 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, RequestInternal } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/model/User';
+import { User } from 'next-auth';
+
+interface DbUser {
+  _id: string;
+  email: string;
+  username: string;
+  password: string;
+  isVerified: boolean;
+  image?: string;
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,18 +23,21 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials: any): Promise<any> {
+      async authorize(
+        credentials: Record<"email" | "password", string> | undefined,
+        _req: Pick<RequestInternal, "body" | "query" | "headers" | "method">
+      ): Promise<User | null> {
+        if (!credentials) return null;
         await dbConnect();
         try {
           const user = await UserModel.findOne({
             $or: [
-              { email: credentials.identifier },
-              { username: credentials.identifier },
+              { email: credentials.email },
+              { username: credentials.email },
             ],
-          });
-          if (!user) {
-            throw new Error('No user found with this email');
-          }
+          }).lean() as DbUser | null;
+          
+          if (!user) return null;
           if (!user.isVerified) {
             throw new Error('Please verify your account before logging in');
           }
@@ -33,12 +46,16 @@ export const authOptions: NextAuthOptions = {
             user.password
           );
           if (isPasswordCorrect) {
-            return user;
-          } else {
-            throw new Error('Incorrect password');
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.username,
+              image: user.image
+            };
           }
-        } catch (err: any) {
-          throw new Error(err);
+          return null;
+        } catch (err: unknown) {
+          throw new Error(err instanceof Error ? err.message : 'Authentication error');
         }
       },
     }),
