@@ -1,7 +1,6 @@
 'use client'
 
 import axios, { AxiosError } from 'axios';
-import dayjs from 'dayjs';
 import { X } from 'lucide-react';
 import { Message } from '@/model/User';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,14 +19,8 @@ import { Button } from './ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { ApiResponse } from '@/types/ApiResponse';
 import { formatDistanceToNow } from 'date-fns';
-import { Trash2 } from 'lucide-react';
 
-type MessageCardProps = {
-  message: Message;
-  onMessageDelete: (id: string) => void;
-};
-
-export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
+export function MessageCard({ message, onMessageDelete }: { message: Message; onMessageDelete: (id: string) => void }) {
   const { toast } = useToast();
 
   const handleDeleteConfirm = async () => {
@@ -38,6 +31,9 @@ export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
       toast({
         title: response.data.message,
       });
+      if (message._id) {
+        onMessageDelete(message._id);
+      }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
