@@ -7,7 +7,7 @@ if (!MONGODB_URI) {
 }
 
 declare global {
-  var mongoose: {
+  const mongoose: {
     conn: typeof import("mongoose") | null;
     promise: Promise<typeof import("mongoose")> | null;
   };
