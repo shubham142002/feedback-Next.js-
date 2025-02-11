@@ -13,6 +13,7 @@ interface VerifyPageProps {
   params: {
     username: string;
   };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default function VerifyPage({ params }: VerifyPageProps) {
